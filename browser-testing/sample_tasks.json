@@ -1,0 +1,12 @@
+[
+  {"url": "https://example.com", "task_type": "availability_check"},
+  {"url": "https://example.com", "task_type": "screenshot"},
+  {"url": "https://byu.edu", "task_type": "screenshot"},
+  {"url": "https://httpbin.org/status/503", "task_type": "availability_check"},
+  {"url": "https://this-domain-does-not-exist-12345.com", "task_type": "availability_check"},
+  {"url": "https://httpbin.org/delay/10", "task_type": "availability_check"},
+  {"url": "http://169.254.169.254/latest/meta-data/", "task_type": "screenshot"},
+  {"url": "http://localhost:6379", "task_type": "availability_check"},
+  {"url": "file:///etc/passwd", "task_type": "screenshot"},
+  {"url": "https://example.com", "task_type": "pdf"}
+]

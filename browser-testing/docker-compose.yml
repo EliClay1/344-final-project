@@ -1,0 +1,23 @@
+# Redis plus some workers. Run the backend (uvicorn app:app and
+# stuck_task_checker.py) on your machine as usual, it finds Redis on localhost:6379.
+#
+#   docker compose up --build --scale worker=3
+services:
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  worker:
+    build: .
+    environment:
+      REDIS_URL: redis://redis:6379/0
+    shm_size: "1gb"
+    stop_grace_period: 50s
+    read_only: true
+    tmpfs: ["/tmp", "/home/pwuser"]
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: ["ALL"]
+    deploy:
+      resources:
+        limits: { cpus: "1", memory: 1g }
+    depends_on: [redis]
