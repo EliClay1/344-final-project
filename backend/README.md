@@ -55,6 +55,8 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+On Ubuntu the first line fails until you run `sudo apt install python3-venv` (kube-lab doesn't have it yet).
+
 Then start Redis in its own terminal. On a Mac that's `brew install redis` once and then `redis-server`.
 
 Then start the API and open http://localhost:8000/docs.
