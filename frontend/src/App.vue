@@ -1,71 +1,76 @@
-
 <script setup>
-import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { currentUser, isAdmin, logout } from './services/authService'
 
-import JobSubmission from './components/JobSubmission.vue'
-import JobTable from './components/JobTable.vue'
-import { getJobs } from './services/jobService'
+const router = useRouter()
 
-const jobs = ref([])
-const loading = ref(true)
-const error = ref('')
-
-async function loadJobs() {
-  loading.value = true
-  error.value = ''
-
-  try {
-    jobs.value = await getJobs()
-  } catch {
-    error.value = 'Unable to load jobs.'
-  } finally {
-    loading.value = false
-  }
+function handleLogout() {
+  logout()
+  router.push('/login')
 }
-
-function handleJobSubmitted(job) {
-  jobs.value.unshift(job)
-}
-
-onMounted(loadJobs)
 </script>
 
 <template>
   <div class="min-h-screen bg-gray-100 text-gray-900">
     <header class="bg-slate-900 text-white p-5">
-      <h1 class="text-2xl font-bold">
-        CYBER 344 Browser Farm
-      </h1>
+      <div class="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-8">
+          <div>
+            <h1 class="text-2xl font-bold">
+              CYBER 344 Browser Farm
+            </h1>
+            <p class="text-sm text-gray-300">
+              Kubernetes Browser Automation Dashboard
+            </p>
+          </div>
 
-      <p class="text-sm text-gray-300">
-        Kubernetes Browser Automation Dashboard
-      </p>
+          <nav
+            v-if="currentUser"
+            class="flex items-center gap-4 text-sm font-medium"
+          >
+            <RouterLink
+              to="/dashboard"
+              class="text-gray-300 hover:text-white transition-colors"
+              active-class="text-white underline underline-offset-4"
+            >
+              Dashboard
+            </RouterLink>
+
+            <RouterLink
+              v-if="isAdmin()"
+              to="/admin"
+              class="text-gray-300 hover:text-white transition-colors"
+              active-class="text-white underline underline-offset-4"
+            >
+              Admin Panel
+            </RouterLink>
+          </nav>
+        </div>
+
+        <div
+          v-if="currentUser"
+          class="flex items-center gap-4"
+        >
+          <span class="text-sm text-gray-300">
+            Signed in as <strong class="text-white">{{ currentUser.username }}</strong>
+            <span class="ml-1.5 px-2 py-0.5 text-xs rounded bg-slate-700 uppercase">
+              {{ currentUser.role }}
+            </span>
+          </span>
+
+          <button
+            type="button"
+            @click="handleLogout"
+            class="bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1.5 rounded"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
     </header>
 
-    <main class="max-w-5xl mx-auto p-6 space-y-6">
-      <JobSubmission
-        @job-submitted="handleJobSubmitted"
-      />
-
-      <p
-        v-if="error"
-        class="text-red-600"
-        role="alert"
-      >
-        {{ error }}
-      </p>
-
-      <p
-        v-if="loading"
-        class="text-gray-500"
-      >
-        Loading jobs...
-      </p>
-
-      <JobTable
-        v-else
-        :jobs="jobs"
-      />
+    <main class="max-w-5xl mx-auto p-6">
+      <RouterView />
     </main>
   </div>
 </template>

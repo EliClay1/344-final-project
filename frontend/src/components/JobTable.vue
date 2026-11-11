@@ -1,11 +1,18 @@
-
 <script setup>
+import { useRouter } from 'vue-router'
+
 defineProps({
   jobs: {
     type: Array,
     required: true,
   },
+  showUser: {
+    type: Boolean,
+    default: false,
+  },
 })
+
+const router = useRouter()
 
 function statusClass(status) {
   const classes = {
@@ -30,10 +37,12 @@ function statusClass(status) {
         <thead>
           <tr class="border-b">
             <th class="py-3 pr-4">Job ID</th>
+            <th v-if="showUser" class="py-3 pr-4">User</th>
             <th class="py-3 pr-4">URL</th>
             <th class="py-3 pr-4">Task</th>
             <th class="py-3 pr-4">Status</th>
-            <th class="py-3">Created</th>
+            <th class="py-3 pr-4">Created</th>
+            <th class="py-3 text-right">Details</th>
           </tr>
         </thead>
 
@@ -41,10 +50,15 @@ function statusClass(status) {
           <tr
             v-for="job in jobs"
             :key="job.id"
-            class="border-b"
+            @click="router.push(`/jobs/${job.id}`)"
+            class="border-b hover:bg-gray-50 cursor-pointer transition-colors"
           >
-            <td class="py-3 pr-4 text-sm">
+            <td class="py-3 pr-4 text-sm font-mono text-blue-600">
               {{ job.id }}
+            </td>
+
+            <td v-if="showUser" class="py-3 pr-4 text-sm font-medium text-gray-700">
+              {{ job.username }}
             </td>
 
             <td class="py-3 pr-4 break-all">
@@ -64,14 +78,18 @@ function statusClass(status) {
               </span>
             </td>
 
-            <td class="py-3 text-sm text-gray-600">
+            <td class="py-3 pr-4 text-sm text-gray-600">
               {{ new Date(job.created_at).toLocaleString() }}
             </td>
-          </tr>
+
+            <td class="py-3 text-right text-sm font-medium text-blue-600">
+              View &rarr;
+            </td>
+          </tr> 
 
           <tr v-if="jobs.length === 0">
             <td
-              colspan="5"
+              :colspan="showUser ? 7 : 6"
               class="py-6 text-gray-500"
             >
               No jobs submitted yet.
