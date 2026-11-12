@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getJob } from '../services/jobService'
+import { getJob, screenshotUrl } from '../services/jobService'
 
 const route = useRoute()
 const router = useRouter()
@@ -9,23 +9,10 @@ const router = useRouter()
 const job = ref(null)
 const loading = ref(true)
 const error = ref('')
+const screenshotFailed = ref(false)
 let pollInterval = null
 
-const safeScreenshotUrl = computed(() => {
-  const src = job.value?.result?.screenshot_url
-  if (!src || typeof src !== 'string') return ''
-
-  if (/^data:image\/(png|jpeg|jpg|webp|gif);base64,/i.test(src)) {
-    return src
-  }
-
-  try {
-    const parsed = new URL(src)
-    return ['http:', 'https:'].includes(parsed.protocol) ? parsed.href : ''
-  } catch {
-    return ''
-  }
-})
+const safeScreenshotUrl = computed(() => screenshotUrl(job.value))
 
 function statusClass(status) {
   const classes = {
@@ -49,6 +36,7 @@ async function fetchJob(silent = false) {
     if (!data) {
       error.value = 'Job not found.'
     } else {
+      if (job.value?.status !== 'completed' && data.status === 'completed') screenshotFailed.value = false
       job.value = data
     }
   } catch (err) {
@@ -129,7 +117,7 @@ onUnmounted(() => {
       <dl class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
         <div class="bg-gray-50 p-3 rounded">
           <dt class="text-gray-500">Task Type</dt>
-          <dd class="font-medium capitalize mt-1">{{ job.task_type }}</dd>
+          <dd class="font-medium mt-1">{{ job.task_type === 'availability_check' ? 'Availability Check' : 'Screenshot' }}</dd>
         </div>
 
         <div class="bg-gray-50 p-3 rounded">
@@ -150,7 +138,7 @@ onUnmounted(() => {
         v-if="job.status === 'queued' || job.status === 'running'"
         class="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-lg text-sm"
       >
-        This task is currently <strong>{{ job.status }}</strong> in a Kubernetes worker container. Results will appear automatically once finished.
+        This task is currently <strong>{{ job.status }}</strong>. Results will appear automatically once finished.
       </div>
 
       <!-- Failed State -->
@@ -161,7 +149,7 @@ onUnmounted(() => {
       >
         <h3 class="font-semibold mb-1">Task Failed</h3>
         <p class="text-sm">
-          {{ job.result?.message || 'An unexpected error occurred while processing this URL.' }}
+          {{ job.error || 'An unexpected error occurred while processing this URL.' }}
         </p>
       </div>
 
@@ -173,27 +161,49 @@ onUnmounted(() => {
         <div class="bg-green-50 border border-green-200 text-green-800 p-4 rounded-lg">
           <h3 class="font-semibold mb-1">Result Summary</h3>
           <p class="text-sm">
-            {{ job.result?.message || 'Task completed successfully.' }}
+            {{ job.task_type === 'availability_check'
+              ? (job.result?.is_up ? 'Website is reachable.' : 'Website did not return a successful response.')
+              : 'Screenshot captured successfully.' }}
           </p>
         </div>
+
+        <dl v-if="job.result" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+          <div v-if="job.result.page_title" class="bg-gray-50 p-3 rounded">
+            <dt class="text-gray-500">Page title</dt>
+            <dd class="font-medium break-all">{{ job.result.page_title }}</dd>
+          </div>
+          <div v-if="job.result.http_status != null" class="bg-gray-50 p-3 rounded">
+            <dt class="text-gray-500">HTTP status</dt>
+            <dd class="font-medium">{{ job.result.http_status }}</dd>
+          </div>
+          <div v-if="job.result.load_time_ms != null" class="bg-gray-50 p-3 rounded">
+            <dt class="text-gray-500">Load time</dt>
+            <dd class="font-medium">{{ job.result.load_time_ms }} ms</dd>
+          </div>
+          <div v-if="job.result.final_url" class="bg-gray-50 p-3 rounded">
+            <dt class="text-gray-500">Final URL</dt>
+            <dd class="font-medium break-all">{{ job.result.final_url }}</dd>
+          </div>
+        </dl>
 
         <div v-if="job.task_type === 'screenshot'">
           <h3 class="font-medium mb-2">Captured Screenshot</h3>
           <div
-            v-if="safeScreenshotUrl"
+            v-if="safeScreenshotUrl && !screenshotFailed"
             class="border border-gray-200 rounded-lg overflow-hidden bg-gray-100"
           >
             <img
               :src="safeScreenshotUrl"
               :alt="`Screenshot of ${job.url}`"
               class="w-full h-auto"
+              @error="screenshotFailed = true"
             />
           </div>
           <p
             v-else
             class="text-sm text-gray-500 italic"
           >
-            No valid screenshot image URL returned for this job.
+            Screenshot is unavailable or has expired.
           </p>
         </div>
       </div>

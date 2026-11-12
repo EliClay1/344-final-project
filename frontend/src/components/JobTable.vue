@@ -37,7 +37,7 @@ function statusClass(status) {
         <thead>
           <tr class="border-b">
             <th class="py-3 pr-4">Job ID</th>
-            <th v-if="showUser" class="py-3 pr-4">User</th>
+            <th v-if="showUser" class="py-3 pr-4">User / ID</th>
             <th class="py-3 pr-4">URL</th>
             <th class="py-3 pr-4">Task</th>
             <th class="py-3 pr-4">Status</th>
@@ -58,7 +58,7 @@ function statusClass(status) {
             </td>
 
             <td v-if="showUser" class="py-3 pr-4 text-sm font-medium text-gray-700">
-              {{ job.username }}
+              {{ job.username || job.user_id || 'Unknown' }}
             </td>
 
             <td class="py-3 pr-4 break-all">
@@ -66,7 +66,7 @@ function statusClass(status) {
             </td>
 
             <td class="py-3 pr-4 capitalize">
-              {{ job.task_type }}
+              {{ job.task_type === 'availability_check' ? 'Availability Check' : 'Screenshot' }}
             </td>
 
             <td class="py-3 pr-4">

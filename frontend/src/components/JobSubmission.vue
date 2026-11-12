@@ -1,11 +1,10 @@
-vue
 <script setup>
 import { ref } from 'vue'
 import { submitJob } from '../services/jobService'
 
 const emit = defineEmits(['job-submitted'])
 
-const ALLOWED_TASKS = ['screenshot', 'availability']
+const ALLOWED_TASKS = ['screenshot', 'availability_check']
 
 const url = ref('')
 const taskType = ref('screenshot')
@@ -136,7 +135,7 @@ async function handleSubmit() {
             Screenshot
           </option>
 
-          <option value="availability">
+          <option value="availability_check">
             Availability Check
           </option>
         </select>

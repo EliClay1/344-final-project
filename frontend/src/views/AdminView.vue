@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import JobTable from '../components/JobTable.vue'
 import { getJobs, getSystemLogs } from '../services/jobService'
+import { USE_MOCK } from '../services/apiClient'
 
 const jobs = ref([])
 const logs = ref([])
@@ -37,10 +38,7 @@ async function loadAdminData(silent = false) {
   error.value = ''
 
   try {
-    const [jobsData, logsData] = await Promise.all([
-      getJobs(),
-      getSystemLogs(),
-    ])
+    const [jobsData, logsData] = await Promise.all([getJobs(), getSystemLogs()])
     jobs.value = jobsData
     logs.value = logsData
   } catch (err) {
@@ -72,10 +70,10 @@ onUnmounted(() => {
     <div class="flex flex-wrap items-center justify-between gap-4">
       <div>
         <h2 class="text-2xl font-bold">
-          Admin Control &amp; Logs
+          {{ USE_MOCK ? 'Admin Control & Logs' : 'Admin Task Monitor' }}
         </h2>
         <p class="text-sm text-gray-600">
-          Global task monitor across all users and Kubernetes worker telemetry.
+          Recent tasks across all users.
         </p>
       </div>
 
@@ -99,11 +97,11 @@ onUnmounted(() => {
     <!-- Cluster / Job Summary Cards -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
       <div class="bg-white shadow rounded-lg p-4">
-        <p class="text-xs uppercase text-gray-500">Total Jobs</p>
+        <p class="text-xs uppercase text-gray-500">Recent Jobs</p>
         <p class="text-2xl font-bold mt-1">{{ stats.total }}</p>
       </div>
       <div class="bg-white shadow rounded-lg p-4">
-        <p class="text-xs uppercase text-gray-500">Active Containers</p>
+        <p class="text-xs uppercase text-gray-500">Active Tasks</p>
         <p class="text-2xl font-bold text-yellow-600 mt-1">{{ stats.active }}</p>
       </div>
       <div class="bg-white shadow rounded-lg p-4">
@@ -117,14 +115,14 @@ onUnmounted(() => {
     </div>
 
     <!-- System & Kubernetes Logs Terminal -->
-    <section class="bg-slate-900 text-gray-100 shadow rounded-lg p-6">
+    <section v-if="USE_MOCK" class="bg-slate-900 text-gray-100 shadow rounded-lg p-6">
       <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
         <div>
           <h3 class="text-lg font-semibold text-white">
             Application &amp; Kubernetes Logs
           </h3>
           <p class="text-xs text-gray-400">
-            Live output from API sanitization layer, K8s autoscaler, and worker containers
+            Sample worker activity for the mock demo
           </p>
         </div>
 

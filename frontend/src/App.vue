@@ -54,7 +54,7 @@ function handleLogout() {
           <span class="text-sm text-gray-300">
             Signed in as <strong class="text-white">{{ currentUser.username }}</strong>
             <span class="ml-1.5 px-2 py-0.5 text-xs rounded bg-slate-700 uppercase">
-              {{ currentUser.role }}
+              {{ isAdmin() ? 'Admin' : 'User' }}
             </span>
           </span>
 

@@ -3,18 +3,19 @@ import { apiRequest, USE_MOCK } from './apiClient'
 
 const STORAGE_KEY = 'cyber344_auth'
 const MOCK_USERS_KEY = 'cyber344_mock_users'
-const USERNAME_REGEX = /^[a-zA-Z0-9_-]{3,32}$/
+const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,32}$/
 
 const savedAuth = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null')
+const validSavedAuth = savedAuth?.mock === USE_MOCK ? savedAuth : null
 
-export const currentUser = ref(savedAuth?.user || null)
-export const authToken = ref(savedAuth?.token || null)
+export const currentUser = ref(validSavedAuth?.user || null)
+export const authToken = ref(validSavedAuth?.token || null)
 
 function getMockUsers() {
   const defaultUsers = [
-    { id: 1, username: 'admin', password: 'password123', role: 'admin' },
-    { id: 2, username: 'dixon', password: 'password123', role: 'user' },
-    { id: 3, username: 'andrew', password: 'password123', role: 'user' },
+    { id: 1, username: 'admin', password: 'password123', permission_level: 2 },
+    { id: 2, username: 'dixon', password: 'password123', permission_level: 0 },
+    { id: 3, username: 'andrew', password: 'password123', permission_level: 0 },
   ]
   const stored = JSON.parse(localStorage.getItem(MOCK_USERS_KEY) || 'null')
   return stored || defaultUsers
@@ -23,7 +24,7 @@ function getMockUsers() {
 function saveSession(authData) {
   currentUser.value = authData.user
   authToken.value = authData.token
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(authData))
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...authData, mock: USE_MOCK }))
 }
 
 export async function login(username, password) {
@@ -53,11 +54,11 @@ export async function login(username, password) {
       user: {
         id: existing.id,
         username: existing.username,
-        role: existing.role,
+        permission_level: existing.permission_level ?? (existing.role === 'admin' ? 2 : 0),
       },
     }
   } else {
-    authData = await apiRequest('/auth/login', {
+    authData = await apiRequest('/login', {
       method: 'POST',
       body: JSON.stringify({
         username: cleanUser,
@@ -75,11 +76,12 @@ export async function register(username, password) {
 
   if (!USERNAME_REGEX.test(cleanUser)) {
     throw new Error(
-      'Username must be 3–32 characters using only letters, numbers, underscores, or hyphens.'
+      'Username must be 3–32 characters using only letters, numbers, or underscores.'
     )
   }
-  if (password.length < 6 || password.length > 128) {
-    throw new Error('Password must be between 6 and 128 characters.')
+  const passwordBytes = new TextEncoder().encode(password).length
+  if (passwordBytes < 8 || passwordBytes > 72) {
+    throw new Error('Password must be between 8 and 72 bytes.')
   }
 
   let authData
@@ -100,7 +102,7 @@ export async function register(username, password) {
       id: users.length + 1,
       username: cleanUser,
       password,
-      role: 'user',
+      permission_level: 0,
     }
 
     users.push(newUser)
@@ -111,17 +113,18 @@ export async function register(username, password) {
       user: {
         id: newUser.id,
         username: newUser.username,
-        role: newUser.role,
+        permission_level: newUser.permission_level,
       },
     }
   } else {
-    authData = await apiRequest('/auth/register', {
+    await apiRequest('/users', {
       method: 'POST',
       body: JSON.stringify({
         username: cleanUser,
         password,
       }),
     })
+    return login(cleanUser, password)
   }
 
   saveSession(authData)
@@ -139,5 +142,5 @@ export function isAuthenticated() {
 }
 
 export function isAdmin() {
-  return currentUser.value?.role === 'admin'
+  return currentUser.value?.permission_level === 2
 }

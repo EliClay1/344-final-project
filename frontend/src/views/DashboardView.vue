@@ -23,8 +23,8 @@ async function loadJobs(silent = false) {
 
   try {
     jobs.value = await getJobs()
-  } catch {
-    error.value = 'Unable to load jobs.'
+  } catch (err) {
+    error.value = err.message || 'Unable to load jobs.'
   } finally {
     if (!silent) {
       loading.value = false
@@ -62,7 +62,7 @@ onUnmounted(() => {
       class="flex items-center gap-2 text-sm text-blue-700 bg-blue-50 border border-blue-200 px-4 py-2 rounded-lg"
     >
       <span class="inline-block w-2 h-2 rounded-full bg-blue-600 animate-ping"></span>
-      <span>Auto-refreshing active Kubernetes tasks...</span>
+      <span>Auto-refreshing active tasks...</span>
     </div>
 
     <p
