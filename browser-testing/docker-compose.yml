@@ -19,5 +19,13 @@ services:
     cap_drop: ["ALL"]
     deploy:
       resources:
-        limits: { cpus: "1", memory: 1g }
+        limits: { cpus: "4", memory: 1g }
     depends_on: [redis]
+
+  browser-worker:
+    build:
+      context: ./browser-worker
+      dockerfile: Dockerfile
+    image: browser-worker:dev-1
+    environment:
+      REDIS_URL: redis://redis:6379/0
