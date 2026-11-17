@@ -12,3 +12,9 @@ This is our final project for the BYU CYBER 344 class. It's a full stack applica
 ## What kinda security?
 
 The website is designed to take any form of user input, and our application safely parses the data, prevents the data from doing anything it shouldn't, and moves the data along to a container which limits overarching access to the system. Additionally, base users can only see tasks that they have requested. Administrative users have the ability to see all of the tasks from every user, and the underlying logs of the app.
+
+
+
+docker run -d \
+  --name redis-dev \
+  -p 127.0.0.1:6379:6379
