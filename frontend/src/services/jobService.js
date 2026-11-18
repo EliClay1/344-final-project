@@ -26,7 +26,7 @@ let jobs = [
     created_at: new Date().toISOString(),
     completed_at: new Date().toISOString(),
     result: {
-      message: 'Screenshot captured successfully',
+      page_title: 'Example Domain',
       screenshot_url: 'https://placehold.co/800x450/png?text=Mock+Screenshot',
     },
     error: null,
@@ -54,7 +54,7 @@ function simulateWorkerProgress() {
       return {
         ...job,
         status: 'running',
-        active_agent: `k8s-worker-${Math.floor(10 + Math.random() * 90)}`,
+        active_agent: 'mock-worker',
       }
     }
 
@@ -175,41 +175,16 @@ export async function getSystemLogs() {
     throw new Error('Unauthorized: Admin access required to view system logs.')
   }
 
-  const now = Date.now()
-
-  const logs = [
-    {
-      id: 'log-101',
-      timestamp: new Date(now - 120000).toISOString(),
-      level: 'INFO',
-      source: 'api-gateway',
-      message: 'Input sanitization passed for incoming task request (URL validated).',
-    },
-    {
-      id: 'log-102',
-      timestamp: new Date(now - 95000).toISOString(),
-      level: 'INFO',
-      source: 'k8s-autoscaler',
-      message: 'Queue depth threshold reached; scaling worker deployment from 1 to 3 pods.',
-    },
-    {
-      id: 'log-103',
-      timestamp: new Date(now - 60000).toISOString(),
-      level: 'INFO',
-      source: 'worker-01',
-      message: 'Spawned isolated Docker sandbox container with restricted network/filesystem permissions.',
-    },
-    ...jobs.slice(0, 5).map((job) => ({
+  const logs = jobs.slice(0, 5).map((job) => ({
       id: `log-job-${job.id}`,
       timestamp: job.completed_at || job.created_at,
       level: job.status === 'failed' ? 'ERROR' : 'INFO',
-      source: job.active_agent || 'k8s-worker-pool',
+      source: job.active_agent || 'task',
       message:
         job.status === 'failed'
-          ? `[${job.id}] Worker container exited with error for ${job.url}: ${job.error || 'Task failed'}`
-          : `[${job.id}] User "${job.username}" (${job.task_type}) -> status: ${job.status.toUpperCase()}`,
-    })),
-  ]
+          ? `${job.url}: ${job.error || 'Task failed'}`
+          : `${job.username} · ${job.task_type === 'availability_check' ? 'Availability check' : 'Screenshot'} · ${job.status}`,
+    }))
 
   return logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
 }

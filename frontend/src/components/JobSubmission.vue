@@ -90,72 +90,24 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <section class="bg-white shadow rounded-lg p-6">
-    <h2 class="text-xl font-semibold mb-4">
-      Submit a Job
-    </h2>
-
-    <form
-      @submit.prevent="handleSubmit"
-      class="space-y-4"
-    >
-      <div>
-        <label
-          for="job-url"
-          class="block mb-2 font-medium"
-        >
-          Website URL
-        </label>
-
-        <input
-          id="job-url"
-          v-model="url"
-          type="url"
-          maxlength="2048"
-          placeholder="https://example.com"
-          required
-          class="w-full border border-gray-300 rounded px-4 py-2"
-        />
+  <section class="task-composer" aria-labelledby="new-task-title">
+    <div class="panel-heading">
+      <div><h2 id="new-task-title">Run a task</h2><p>Enter a public website to check.</p></div>
+    </div>
+    <form class="submit-form" @submit.prevent="handleSubmit">
+      <div class="form-field form-field--url">
+        <label for="job-url">Website URL</label>
+        <input id="job-url" v-model="url" type="url" maxlength="2048" placeholder="https://example.com" required />
       </div>
-
-      <div>
-        <label
-          for="task-type"
-          class="block mb-2 font-medium"
-        >
-          Task Type
-        </label>
-
-        <select
-          id="task-type"
-          v-model="taskType"
-          class="w-full border border-gray-300 rounded px-4 py-2"
-        >
-          <option value="screenshot">
-            Screenshot
-          </option>
-
-          <option value="availability_check">
-            Availability Check
-          </option>
+      <div class="form-field form-field--type">
+        <label for="task-type">Task type</label>
+        <select id="task-type" v-model="taskType">
+          <option value="screenshot">Screenshot</option>
+          <option value="availability_check">Availability check</option>
         </select>
       </div>
-
-      <p
-        v-if="error"
-        class="text-red-600 text-sm"
-        role="alert"
-      >
-        {{ error }}
-      </p>
-
-      <button
-        type="submit"
-        :disabled="loading"
-        class="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-5 py-2 rounded"
-      >
-        {{ loading ? 'Submitting...' : 'Submit Job' }}
-      </button>
+      <button class="primary-button" type="submit" :disabled="loading">{{ loading ? 'Submitting…' : 'Run task' }}</button>
     </form>
+    <p v-if="error" class="form-error" role="alert">{{ error }}</p>
   </section>
 </template>
