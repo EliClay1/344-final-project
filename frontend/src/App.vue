@@ -1,6 +1,7 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import { currentUser, isAdmin, logout } from './services/authService'
+import { USE_MOCK } from './services/apiClient'
 
 const router = useRouter()
 
@@ -11,66 +12,31 @@ function handleLogout() {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-100 text-gray-900">
-    <header class="bg-slate-900 text-white p-5">
-      <div class="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-4">
-        <div class="flex items-center gap-8">
-          <div>
-            <h1 class="text-2xl font-bold">
-              CYBER 344 Browser Farm
-            </h1>
-            <p class="text-sm text-gray-300">
-              Kubernetes Browser Automation Dashboard
-            </p>
-          </div>
-
-          <nav
-            v-if="currentUser"
-            class="flex items-center gap-4 text-sm font-medium"
-          >
-            <RouterLink
-              to="/dashboard"
-              class="text-gray-300 hover:text-white transition-colors"
-              active-class="text-white underline underline-offset-4"
-            >
-              Dashboard
-            </RouterLink>
-
-            <RouterLink
-              v-if="isAdmin()"
-              to="/admin"
-              class="text-gray-300 hover:text-white transition-colors"
-              active-class="text-white underline underline-offset-4"
-            >
-              Admin Panel
-            </RouterLink>
-          </nav>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="app-header__inner content-width">
+        <RouterLink class="app-name" to="/dashboard">
+          <svg class="app-mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="2" y="3" width="20" height="18" rx="2" stroke="currentColor" stroke-width="1.7" />
+            <path d="M2 8h20M5 5.5h.01M8 5.5h.01" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+            <path d="m8 15 2.5 2.5L16 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <span>Browser Farm</span>
+        </RouterLink>
+        <span class="course-label">CYBER 344</span>
+        <nav v-if="currentUser" class="app-nav" aria-label="Main navigation">
+          <RouterLink to="/dashboard" active-class="active">Dashboard</RouterLink>
+          <RouterLink v-if="isAdmin()" to="/admin" active-class="active">Admin</RouterLink>
+        </nav>
+        <div v-if="currentUser" class="account-menu">
+          <span class="mode-label" :class="{ 'mode-label--demo': USE_MOCK }">{{ USE_MOCK ? 'Demo' : 'Live' }}</span>
+          <span>{{ currentUser.username }} <span class="account-role">({{ isAdmin() ? 'admin' : 'user' }})</span></span>
+          <button type="button" @click="handleLogout">Sign out</button>
         </div>
-
-        <div
-          v-if="currentUser"
-          class="flex items-center gap-4"
-        >
-          <span class="text-sm text-gray-300">
-            Signed in as <strong class="text-white">{{ currentUser.username }}</strong>
-            <span class="ml-1.5 px-2 py-0.5 text-xs rounded bg-slate-700 uppercase">
-              {{ isAdmin() ? 'Admin' : 'User' }}
-            </span>
-          </span>
-
-          <button
-            type="button"
-            @click="handleLogout"
-            class="bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1.5 rounded"
-          >
-            Logout
-          </button>
-        </div>
+        <span v-else class="mode-label">{{ USE_MOCK ? 'Demo mode' : 'Live API' }}</span>
       </div>
     </header>
 
-    <main class="max-w-5xl mx-auto p-6">
-      <RouterView />
-    </main>
+    <main class="content-width app-main"><RouterView /></main>
   </div>
 </template>

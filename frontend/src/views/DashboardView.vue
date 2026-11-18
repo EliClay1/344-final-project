@@ -10,25 +10,19 @@ const loading = ref(true)
 const error = ref('')
 let pollInterval = null
 
-// Only poll if at least one job is still queued or running
 const hasActiveJobs = computed(() =>
   jobs.value.some((job) => job.status === 'queued' || job.status === 'running')
 )
 
 async function loadJobs(silent = false) {
-  if (!silent) {
-    loading.value = true
-  }
+  if (!silent) loading.value = true
   error.value = ''
-
   try {
     jobs.value = await getJobs()
   } catch (err) {
-    error.value = err.message || 'Unable to load jobs.'
+    error.value = err.message || 'Unable to load tasks.'
   } finally {
-    if (!silent) {
-      loading.value = false
-    }
+    if (!silent) loading.value = false
   }
 }
 
@@ -38,52 +32,36 @@ function handleJobSubmitted(job) {
 
 onMounted(async () => {
   await loadJobs()
-
   pollInterval = setInterval(() => {
-    if (hasActiveJobs.value) {
-      loadJobs(true)
-    }
+    if (hasActiveJobs.value) loadJobs(true)
   }, 3000)
 })
 
 onUnmounted(() => {
-  if (pollInterval) {
-    clearInterval(pollInterval)
-  }
+  if (pollInterval) clearInterval(pollInterval)
 })
 </script>
 
 <template>
-  <div class="space-y-6">
-    <JobSubmission @job-submitted="handleJobSubmitted" />
-
-    <div
-      v-if="hasActiveJobs"
-      class="flex items-center gap-2 text-sm text-blue-700 bg-blue-50 border border-blue-200 px-4 py-2 rounded-lg"
-    >
-      <span class="inline-block w-2 h-2 rounded-full bg-blue-600 animate-ping"></span>
-      <span>Auto-refreshing active tasks...</span>
+  <div class="page-stack">
+    <div class="page-heading">
+      <h1>Tasks</h1>
     </div>
 
-    <p
-      v-if="error"
-      class="text-red-600"
-      role="alert"
-    >
-      {{ error }}
-    </p>
+    <p v-if="error" class="alert alert--error" role="alert">{{ error }}</p>
 
-    <p
-      v-if="loading"
-      class="text-gray-500"
-    >
-      Loading jobs...
-    </p>
+    <JobSubmission @job-submitted="handleJobSubmitted" />
 
-    <JobTable
-      v-else
-      :jobs="jobs"
-      :show-user="isAdmin()"
-    />
+    <section class="work-section" aria-labelledby="history-title">
+      <div class="panel-heading">
+        <h2 id="history-title">Recent tasks</h2>
+        <div class="history-meta">
+          <span v-if="hasActiveJobs" class="refresh-note" aria-live="polite"><span class="refresh-dot"></span>Updating active tasks</span>
+          <span v-else class="task-count">{{ jobs.length }} shown</span>
+        </div>
+      </div>
+      <p v-if="loading" class="panel-state">Loading tasks…</p>
+      <JobTable v-else :jobs="jobs" :show-user="isAdmin()" />
+    </section>
   </div>
 </template>

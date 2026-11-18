@@ -53,140 +53,34 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="max-w-md mx-auto mt-12 bg-white shadow rounded-lg p-6">
-    <h2 class="text-xl font-semibold mb-1">
-      {{ isRegisterMode ? 'Create Account' : 'Sign In' }}
-    </h2>
-    <p class="text-sm text-gray-500 mb-6">
-      {{
-        isRegisterMode
-          ? 'Register a Base User account to submit and track tasks.'
-          : 'Log in to submit URLs and monitor Kubernetes tasks.'
-      }}
-    </p>
+  <div class="auth-wrap">
+    <section class="auth-panel" aria-labelledby="auth-title">
+      <h1 id="auth-title">{{ isRegisterMode ? 'Create an account' : 'Sign in' }}</h1>
 
-    <form
-      @submit.prevent="handleSubmit"
-      class="space-y-4"
-    >
-      <div>
-        <label
-          for="username"
-          class="block mb-2 font-medium"
-        >
-          Username
-        </label>
-        <input
-          id="username"
-          v-model="username"
-          type="text"
-          maxlength="32"
-          autocomplete="username"
-          placeholder="Enter username"
-          required
-          class="w-full border border-gray-300 rounded px-4 py-2"
-        />
+      <form class="auth-form" @submit.prevent="handleSubmit">
+        <div class="form-field">
+          <label for="username">Username</label>
+          <input id="username" v-model="username" type="text" maxlength="32" autocomplete="username" required />
+        </div>
+        <div class="form-field">
+          <label for="password">Password</label>
+          <input id="password" v-model="password" type="password" maxlength="128" :autocomplete="isRegisterMode ? 'new-password' : 'current-password'" required />
+        </div>
+        <div v-if="isRegisterMode" class="form-field">
+          <label for="confirm-password">Confirm password</label>
+          <input id="confirm-password" v-model="confirmPassword" type="password" maxlength="128" autocomplete="new-password" required />
+        </div>
+        <p v-if="error" class="form-error" role="alert">{{ error }}</p>
+        <button class="primary-button auth-submit" type="submit" :disabled="loading">{{ loading ? (isRegisterMode ? 'Creating account…' : 'Signing in…') : (isRegisterMode ? 'Create account' : 'Sign in') }}</button>
+      </form>
+
+      <p class="auth-switch">{{ isRegisterMode ? 'Already have an account?' : 'Need an account?' }} <button type="button" @click="toggleMode">{{ isRegisterMode ? 'Sign in' : 'Register' }}</button></p>
+
+      <div v-if="isMockMode" class="demo-box">
+        <h2>Demo accounts</h2>
+        <p>Both accounts use <code>password123</code>.</p>
+        <div><button type="button" @click="fillDemo('user')">Use dixon</button><button type="button" @click="fillDemo('admin')">Use admin</button></div>
       </div>
-
-      <div>
-        <label
-          for="password"
-          class="block mb-2 font-medium"
-        >
-          Password
-        </label>
-        <input
-          id="password"
-          v-model="password"
-          type="password"
-          maxlength="128"
-          :autocomplete="isRegisterMode ? 'new-password' : 'current-password'"
-          placeholder="••••••••"
-          required
-          class="w-full border border-gray-300 rounded px-4 py-2"
-        />
-      </div>
-
-      <div v-if="isRegisterMode">
-        <label
-          for="confirm-password"
-          class="block mb-2 font-medium"
-        >
-          Confirm Password
-        </label>
-        <input
-          id="confirm-password"
-          v-model="confirmPassword"
-          type="password"
-          maxlength="128"
-          autocomplete="new-password"
-          placeholder="••••••••"
-          required
-          class="w-full border border-gray-300 rounded px-4 py-2"
-        />
-      </div>
-
-      <p
-        v-if="error"
-        class="text-red-600 text-sm"
-        role="alert"
-      >
-        {{ error }}
-      </p>
-
-      <button
-        type="submit"
-        :disabled="loading"
-        class="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-5 py-2 rounded font-medium"
-      >
-        {{
-          loading
-            ? isRegisterMode
-              ? 'Creating account...'
-              : 'Signing in...'
-            : isRegisterMode
-              ? 'Create Account'
-              : 'Sign In'
-        }}
-      </button>
-    </form>
-
-    <div class="mt-4 text-center text-sm text-gray-600">
-      <span>
-        {{ isRegisterMode ? 'Already have an account?' : "Don't have an account?" }}
-      </span>
-      <button
-        type="button"
-        @click="toggleMode"
-        class="ml-1 text-blue-600 hover:text-blue-800 font-medium"
-      >
-        {{ isRegisterMode ? 'Sign In' : 'Register' }}
-      </button>
-    </div>
-
-    <div
-      v-if="isMockMode"
-      class="mt-6 pt-4 border-t border-gray-200"
-    >
-      <p class="text-xs text-gray-500 mb-2">
-        Mock Demo Quick-Fill:
-      </p>
-      <div class="flex gap-2">
-        <button
-          type="button"
-          @click="fillDemo('user')"
-          class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-800 px-3 py-1.5 rounded"
-        >
-          Base User (dixon)
-        </button>
-        <button
-          type="button"
-          @click="fillDemo('admin')"
-          class="text-xs bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded"
-        >
-          Admin User (admin)
-        </button>
-      </div>
-    </div>
+    </section>
   </div>
 </template>
