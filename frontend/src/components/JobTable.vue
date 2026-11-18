@@ -12,7 +12,7 @@ defineProps({
       <thead>
         <tr>
           <th scope="col">Website</th>
-          <th v-if="showUser" scope="col">User</th>
+          <th v-if="showUser" scope="col">User ID</th>
           <th scope="col">Task</th>
           <th scope="col">Status</th>
           <th scope="col">Submitted</th>
